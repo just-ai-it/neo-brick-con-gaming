@@ -1,20 +1,19 @@
 # Databricks notebook source
 # MAGIC %md
 # MAGIC # 01 - Create LiveOps Demo Schema and Tables
-# MAGIC Unity Catalog: `cursor_gaming.gaming`
+# MAGIC Unity Catalog: `main.cursor_gaming`
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC CREATE CATALOG IF NOT EXISTS cursor_gaming;
-# MAGIC CREATE SCHEMA IF NOT EXISTS cursor_gaming.gaming
+# MAGIC CREATE SCHEMA IF NOT EXISTS main.cursor_gaming
 # MAGIC COMMENT 'LiveOps demo: real-time monitoring + anomaly alerting + RCA';
 
 # COMMAND ----------
 
 # MAGIC %sql
 # MAGIC -- Behavioral events
-# MAGIC CREATE TABLE IF NOT EXISTS cursor_gaming.gaming.silver_game_events (
+# MAGIC CREATE TABLE IF NOT EXISTS main.cursor_gaming.silver_game_events (
 # MAGIC   event_ts TIMESTAMP NOT NULL,
 # MAGIC   user_id STRING NOT NULL,
 # MAGIC   region STRING,
@@ -29,7 +28,7 @@
 
 # MAGIC %sql
 # MAGIC -- Payment outcomes (with dimensions for drill-down)
-# MAGIC CREATE TABLE IF NOT EXISTS cursor_gaming.gaming.silver_payments (
+# MAGIC CREATE TABLE IF NOT EXISTS main.cursor_gaming.silver_payments (
 # MAGIC   event_ts TIMESTAMP NOT NULL,
 # MAGIC   user_id STRING NOT NULL,
 # MAGIC   amount DOUBLE,
@@ -47,7 +46,7 @@
 
 # MAGIC %sql
 # MAGIC -- 5-minute KPI aggregates (multi-dimensional)
-# MAGIC CREATE TABLE IF NOT EXISTS cursor_gaming.gaming.gold_kpi_5m (
+# MAGIC CREATE TABLE IF NOT EXISTS main.cursor_gaming.gold_kpi_5m (
 # MAGIC   bucket_5m TIMESTAMP NOT NULL,
 # MAGIC   platform STRING,
 # MAGIC   app_version STRING,
@@ -65,7 +64,7 @@
 
 # MAGIC %sql
 # MAGIC -- Anomaly detection results
-# MAGIC CREATE TABLE IF NOT EXISTS cursor_gaming.gaming.gold_anomaly (
+# MAGIC CREATE TABLE IF NOT EXISTS main.cursor_gaming.gold_anomaly (
 # MAGIC   bucket_5m TIMESTAMP NOT NULL,
 # MAGIC   metric STRING NOT NULL,
 # MAGIC   actual DOUBLE,
@@ -80,4 +79,4 @@
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC SHOW TABLES IN cursor_gaming.gaming;
+# MAGIC SHOW TABLES IN main.cursor_gaming;

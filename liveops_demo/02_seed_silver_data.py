@@ -107,12 +107,12 @@ df_payments = spark.createDataFrame(rows_payments, schema_payments)
 
 # COMMAND ----------
 
-df_events.write.mode("overwrite").saveAsTable("cursor_gaming.gaming.silver_game_events")
-df_payments.write.mode("overwrite").saveAsTable("cursor_gaming.gaming.silver_payments")
+df_events.write.mode("overwrite").saveAsTable("main.cursor_gaming.silver_game_events")
+df_payments.write.mode("overwrite").saveAsTable("main.cursor_gaming.silver_payments")
 
 # COMMAND ----------
 
 # MAGIC %sql
 # MAGIC SELECT date_trunc('hour', event_ts) AS h, count(*) AS cnt
-# MAGIC FROM cursor_gaming.gaming.silver_game_events
+# MAGIC FROM main.cursor_gaming.silver_game_events
 # MAGIC GROUP BY 1 ORDER BY 1;

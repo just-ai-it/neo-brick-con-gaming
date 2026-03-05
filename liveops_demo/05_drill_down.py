@@ -32,7 +32,7 @@ we = dbutils.widgets.get("window_end")
 # MAGIC   sum(pay_attempts) AS attempts,
 # MAGIC   sum(pay_success) AS success,
 # MAGIC   round(sum(pay_success)*1.0/nullif(sum(pay_attempts),0), 4) AS pay_success_rate
-# MAGIC FROM cursor_gaming.gaming.gold_kpi_5m
+# MAGIC FROM main.cursor_gaming.gold_kpi_5m
 # MAGIC WHERE bucket_5m >= cast('$window_start' AS timestamp)
 # MAGIC   AND bucket_5m < cast('$window_end' AS timestamp)
 # MAGIC GROUP BY platform, app_version
@@ -49,7 +49,7 @@ we = dbutils.widgets.get("window_end")
 # MAGIC SELECT region, platform, app_version,
 # MAGIC   sum(pay_attempts) AS attempts, sum(pay_success) AS success,
 # MAGIC   round(sum(pay_success)*1.0/nullif(sum(pay_attempts),0), 4) AS pay_success_rate
-# MAGIC FROM cursor_gaming.gaming.gold_kpi_5m
+# MAGIC FROM main.cursor_gaming.gold_kpi_5m
 # MAGIC WHERE bucket_5m >= cast('$window_start' AS timestamp)
 # MAGIC   AND bucket_5m < cast('$window_end' AS timestamp)
 # MAGIC GROUP BY region, platform, app_version
@@ -65,7 +65,7 @@ we = dbutils.widgets.get("window_end")
 # MAGIC %sql
 # MAGIC SELECT coalesce(error_code, 'SUCCESS') AS error_code,
 # MAGIC   count(*) AS cnt
-# MAGIC FROM cursor_gaming.gaming.silver_payments
+# MAGIC FROM main.cursor_gaming.silver_payments
 # MAGIC WHERE event_ts >= cast('$window_start' AS timestamp)
 # MAGIC   AND event_ts < cast('$window_end' AS timestamp)
 # MAGIC GROUP BY error_code
@@ -82,7 +82,7 @@ we = dbutils.widgets.get("window_end")
 # MAGIC SELECT provider, platform, app_version,
 # MAGIC   sum(pay_attempts) AS attempts, sum(pay_success) AS success,
 # MAGIC   round(sum(pay_success)*1.0/nullif(sum(pay_attempts),0), 4) AS pay_success_rate
-# MAGIC FROM cursor_gaming.gaming.gold_kpi_5m
+# MAGIC FROM main.cursor_gaming.gold_kpi_5m
 # MAGIC WHERE bucket_5m >= cast('$window_start' AS timestamp)
 # MAGIC   AND bucket_5m < cast('$window_end' AS timestamp)
 # MAGIC GROUP BY provider, platform, app_version
@@ -97,7 +97,7 @@ we = dbutils.widgets.get("window_end")
 
 # MAGIC %sql
 # MAGIC SELECT event_ts, user_id, provider, payment_status, error_code, amount
-# MAGIC FROM cursor_gaming.gaming.silver_payments
+# MAGIC FROM main.cursor_gaming.silver_payments
 # MAGIC WHERE event_ts >= cast('$window_start' AS timestamp)
 # MAGIC   AND event_ts < cast('$window_end' AS timestamp)
 # MAGIC   AND payment_status = 'fail'

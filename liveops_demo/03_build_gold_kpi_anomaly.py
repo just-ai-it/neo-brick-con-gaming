@@ -8,7 +8,7 @@
 
 # MAGIC %sql
 # MAGIC -- 5-minute KPI (by platform/version/region/provider)
-# MAGIC CREATE OR REPLACE TABLE cursor_gaming.gaming.gold_kpi_5m AS
+# MAGIC CREATE OR REPLACE TABLE main.cursor_gaming.gold_kpi_5m AS
 # MAGIC WITH pay_5m AS (
 # MAGIC   SELECT
 # MAGIC     date_trunc('minute', (floor(unix_timestamp(event_ts) / 300) * 300).cast('timestamp')) AS bucket_5m,
@@ -20,7 +20,7 @@
 # MAGIC     sum(case when payment_status = 'success' then 1 else 0 end) AS pay_success,
 # MAGIC     sum(amount) AS revenue,
 # MAGIC     count(distinct user_id) AS dau_5m
-# MAGIC   FROM cursor_gaming.gaming.silver_payments
+# MAGIC   FROM main.cursor_gaming.silver_payments
 # MAGIC   GROUP BY 1, 2, 3, 4, 5
 # MAGIC )
 # MAGIC SELECT
@@ -39,75 +39,41 @@
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC -- Overall 5-minute KPI (for anomaly detection)
-# MAGIC CREATE OR REPLACE TEMP VIEW v_kpi_5m_overall AS
-# MAGIC SELECT
-# MAGIC   bucket_5m,
-# MAGIC   sum(revenue) AS revenue,
-# MAGIC   sum(pay_attempts) AS pay_attempts,
-# MAGIC   sum(pay_success) AS pay_success,
-# MAGIC   sum(pay_success) * 1.0 / nullif(sum(pay_attempts), 0) AS pay_success_rate,
-# MAGIC   sum(dau_5m) AS dau_5m
-# MAGIC FROM cursor_gaming.gaming.gold_kpi_5m
-# MAGIC GROUP BY bucket_5m;
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC -- Rolling baseline: same minute mean/std over past days (here 3 days simulates 7d)
-# MAGIC CREATE OR REPLACE TEMP VIEW v_baseline AS
-# MAGIC WITH kpi AS (
-# MAGIC   SELECT bucket_5m, revenue, pay_success_rate, dau_5m
-# MAGIC   FROM v_kpi_5m_overall
-# MAGIC ),
-# MAGIC with_minute AS (
-# MAGIC   SELECT *,
-# MAGIC     minute(bucket_5m) AS m,
-# MAGIC     hour(bucket_5m) AS h
-# MAGIC   FROM kpi
+# MAGIC -- gold_anomaly: inline KPI + baseline (no temp views for job reliability)
+# MAGIC CREATE OR REPLACE TABLE main.cursor_gaming.gold_anomaly AS
+# MAGIC WITH kpi_overall AS (
+# MAGIC   SELECT bucket_5m, sum(revenue) AS revenue, sum(pay_attempts) AS pay_attempts,
+# MAGIC     sum(pay_success) AS pay_success, sum(dau_5m) AS dau_5m,
+# MAGIC     sum(pay_success) * 1.0 / nullif(sum(pay_attempts), 0) AS pay_success_rate
+# MAGIC   FROM main.cursor_gaming.gold_kpi_5m
+# MAGIC   GROUP BY bucket_5m
 # MAGIC ),
 # MAGIC baseline AS (
-# MAGIC   SELECT
-# MAGIC     h, m,
-# MAGIC     avg(pay_success_rate) AS baseline_rate,
-# MAGIC     stddev(pay_success_rate) AS std_rate,
-# MAGIC     avg(revenue) AS baseline_revenue,
-# MAGIC     stddev(revenue) AS std_revenue
-# MAGIC   FROM with_minute
-# MAGIC   GROUP BY h, m
-# MAGIC )
-# MAGIC SELECT * FROM baseline;
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC -- gold_anomaly: each bucket vs baseline, z_score < -3 => anomaly
-# MAGIC CREATE OR REPLACE TABLE cursor_gaming.gaming.gold_anomaly AS
-# MAGIC WITH kpi AS (
-# MAGIC   SELECT bucket_5m, revenue, pay_success_rate, pay_attempts, dau_5m
-# MAGIC   FROM v_kpi_5m_overall
+# MAGIC   SELECT hour(bucket_5m) AS h, minute(bucket_5m) AS m,
+# MAGIC     avg(pay_success_rate) AS baseline_rate, stddev(pay_success_rate) AS std_rate,
+# MAGIC     avg(revenue) AS baseline_revenue, stddev(revenue) AS std_revenue
+# MAGIC   FROM kpi_overall
+# MAGIC   GROUP BY hour(bucket_5m), minute(bucket_5m)
 # MAGIC ),
 # MAGIC with_baseline AS (
 # MAGIC   SELECT k.bucket_5m, k.revenue, k.pay_success_rate, k.pay_attempts, k.dau_5m,
 # MAGIC     b.baseline_rate, b.std_rate, b.baseline_revenue, b.std_revenue
-# MAGIC   FROM kpi k
-# MAGIC   JOIN v_baseline b ON hour(k.bucket_5m) = b.h AND minute(k.bucket_5m) = b.m
+# MAGIC   FROM kpi_overall k
+# MAGIC   JOIN baseline b ON hour(k.bucket_5m) = b.h AND minute(k.bucket_5m) = b.m
 # MAGIC ),
 # MAGIC rate_anomaly AS (
-# MAGIC   SELECT
-# MAGIC     bucket_5m, 'pay_success_rate' AS metric,
+# MAGIC   SELECT bucket_5m, 'pay_success_rate' AS metric,
 # MAGIC     pay_success_rate AS actual, baseline_rate AS baseline, coalesce(std_rate, 0) AS std,
-# MAGIC     CASE WHEN coalesce(std_rate, 0) > 0 THEN (pay_success_rate - baseline_rate) / std_rate ELSE 0 END AS z_score,
-# MAGIC     (pay_success_rate - baseline_rate) / nullif(std_rate, 0) < -3 AS is_anomaly,
+# MAGIC     (pay_success_rate - baseline_rate) / greatest(coalesce(std_rate, 0), 1e-9) AS z_score,
+# MAGIC     (pay_success_rate - baseline_rate) / greatest(coalesce(std_rate, 0), 1e-9) < -3 AS is_anomaly,
 # MAGIC     (baseline_rate - pay_success_rate) * pay_attempts * 50 AS impact_estimated
 # MAGIC   FROM with_baseline
 # MAGIC ),
 # MAGIC rev_anomaly AS (
-# MAGIC   SELECT
-# MAGIC     bucket_5m, 'revenue' AS metric,
+# MAGIC   SELECT bucket_5m, 'revenue' AS metric,
 # MAGIC     revenue AS actual, baseline_revenue AS baseline, coalesce(std_revenue, 0) AS std,
-# MAGIC     CASE WHEN coalesce(std_revenue, 0) > 0 THEN (revenue - baseline_revenue) / std_revenue ELSE 0 END AS z_score,
-# MAGIC     (revenue - baseline_revenue) / nullif(std_revenue, 0) < -3 AS is_anomaly,
+# MAGIC     (revenue - baseline_revenue) / greatest(coalesce(std_revenue, 0), 1e-9) AS z_score,
+# MAGIC     (revenue - baseline_revenue) / greatest(coalesce(std_revenue, 0), 1e-9) < -3 AS is_anomaly,
 # MAGIC     (baseline_revenue - revenue) AS impact_estimated
 # MAGIC   FROM with_baseline
 # MAGIC )

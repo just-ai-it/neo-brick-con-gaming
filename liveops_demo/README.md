@@ -14,10 +14,10 @@
 
 ## Data Assets (Unity Catalog)
 
-- `cursor_gaming.gaming.silver_game_events` — behavioral events
-- `cursor_gaming.gaming.silver_payments` — payment outcomes
-- `cursor_gaming.gaming.gold_kpi_5m` — 5-minute KPI aggregates
-- `cursor_gaming.gaming.gold_anomaly` — anomaly detection results
+- `main.cursor_gaming.silver_game_events` — behavioral events
+- `main.cursor_gaming.silver_payments` — payment outcomes
+- `main.cursor_gaming.gold_kpi_5m` — 5-minute KPI aggregates
+- `main.cursor_gaming.gold_anomaly` — anomaly detection results
 
 ## Run Order
 

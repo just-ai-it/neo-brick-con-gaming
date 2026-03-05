@@ -1,0 +1,11 @@
+{
+  "run_name": "one_plus_one_run",
+  "tasks": [
+    {
+      "task_key": "run_notebook",
+      "notebook_task": {
+        "notebook_path": "/one_plus_one"
+      }
+    }
+  ]
+}

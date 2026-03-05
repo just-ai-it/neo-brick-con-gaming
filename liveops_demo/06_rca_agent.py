@@ -28,7 +28,7 @@ PRESET_QUESTIONS = [
 # MAGIC %sql
 # MAGIC -- Tool 1: anomaly time window
 # MAGIC SELECT bucket_5m, metric, actual, baseline, z_score, impact_estimated
-# MAGIC FROM main.liveops_demo.gold_anomaly
+# MAGIC FROM cursor_gaming.gaming.gold_anomaly
 # MAGIC WHERE is_anomaly = true
 # MAGIC ORDER BY bucket_5m;
 
@@ -44,7 +44,7 @@ PRESET_QUESTIONS = [
 # MAGIC SELECT platform, app_version,
 # MAGIC   sum(pay_attempts) AS attempts, sum(pay_success) AS success,
 # MAGIC   round(sum(pay_success)*1.0/nullif(sum(pay_attempts),0), 4) AS pay_success_rate
-# MAGIC FROM main.liveops_demo.gold_kpi_5m
+# MAGIC FROM cursor_gaming.gaming.gold_kpi_5m
 # MAGIC WHERE bucket_5m >= current_date() - interval 1 day + interval 10 hour
 # MAGIC   AND bucket_5m < current_date() - interval 1 day + interval 11 hour
 # MAGIC GROUP BY platform, app_version
@@ -57,7 +57,7 @@ PRESET_QUESTIONS = [
 # MAGIC SELECT region, platform, app_version,
 # MAGIC   sum(pay_attempts) AS attempts, sum(pay_success) AS success,
 # MAGIC   round(sum(pay_success)*1.0/nullif(sum(pay_attempts),0), 4) AS pay_success_rate
-# MAGIC FROM main.liveops_demo.gold_kpi_5m
+# MAGIC FROM cursor_gaming.gaming.gold_kpi_5m
 # MAGIC WHERE bucket_5m >= current_date() - interval 1 day + interval 10 hour
 # MAGIC   AND bucket_5m < current_date() - interval 1 day + interval 11 hour
 # MAGIC GROUP BY region, platform, app_version
@@ -68,7 +68,7 @@ PRESET_QUESTIONS = [
 # MAGIC %sql
 # MAGIC -- Tool 3: Top error_code
 # MAGIC SELECT coalesce(error_code, 'SUCCESS') AS error_code, count(*) AS cnt
-# MAGIC FROM main.liveops_demo.silver_payments
+# MAGIC FROM cursor_gaming.gaming.silver_payments
 # MAGIC WHERE event_ts >= current_date() - interval 1 day + interval 10 hour
 # MAGIC   AND event_ts < current_date() - interval 1 day + interval 11 hour
 # MAGIC GROUP BY error_code ORDER BY cnt DESC;
@@ -80,7 +80,7 @@ PRESET_QUESTIONS = [
 # MAGIC SELECT provider, platform, app_version,
 # MAGIC   sum(pay_attempts) AS attempts, sum(pay_success) AS success,
 # MAGIC   round(sum(pay_success)*1.0/nullif(sum(pay_attempts),0), 4) AS pay_success_rate
-# MAGIC FROM main.liveops_demo.gold_kpi_5m
+# MAGIC FROM cursor_gaming.gaming.gold_kpi_5m
 # MAGIC WHERE bucket_5m >= current_date() - interval 1 day + interval 10 hour
 # MAGIC   AND bucket_5m < current_date() - interval 1 day + interval 11 hour
 # MAGIC GROUP BY provider, platform, app_version
@@ -131,7 +131,7 @@ Output **root-cause cards** in this format:
 
 def fetch_evidence(spark):
     """Run SQL to get evidence; return dict for prompt."""
-    anomaly = spark.sql("SELECT bucket_5m, metric, actual, baseline, z_score FROM main.liveops_demo.gold_anomaly WHERE is_anomaly = true ORDER BY bucket_5m").collect()
+    anomaly = spark.sql("SELECT bucket_5m, metric, actual, baseline, z_score FROM cursor_gaming.gaming.gold_anomaly WHERE is_anomaly = true ORDER BY bucket_5m").collect()
     return {
         "anomaly_windows": "\n".join([str(r) for r in anomaly]) if anomaly else "None",
         "platform_version": "(see Step 2 query result above)",

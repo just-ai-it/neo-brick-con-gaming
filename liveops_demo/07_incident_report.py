@@ -15,7 +15,7 @@
 # MAGIC -- Anomaly window summary
 # MAGIC SELECT min(bucket_5m) AS window_start, max(bucket_5m) AS window_end,
 # MAGIC   sum(impact_estimated) AS estimated_impact
-# MAGIC FROM main.liveops_demo.gold_anomaly
+# MAGIC FROM cursor_gaming.gaming.gold_anomaly
 # MAGIC WHERE is_anomaly = true;
 
 # COMMAND ----------

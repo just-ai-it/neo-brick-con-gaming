@@ -14,10 +14,10 @@
 
 ## Data Assets (Unity Catalog)
 
-- `main.liveops_demo.silver_game_events` — behavioral events
-- `main.liveops_demo.silver_payments` — payment outcomes
-- `main.liveops_demo.gold_kpi_5m` — 5-minute KPI aggregates
-- `main.liveops_demo.gold_anomaly` — anomaly detection results
+- `cursor_gaming.gaming.silver_game_events` — behavioral events
+- `cursor_gaming.gaming.silver_payments` — payment outcomes
+- `cursor_gaming.gaming.gold_kpi_5m` — 5-minute KPI aggregates
+- `cursor_gaming.gaming.gold_anomaly` — anomaly detection results
 
 ## Run Order
 

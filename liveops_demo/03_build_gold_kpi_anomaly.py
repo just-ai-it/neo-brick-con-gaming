@@ -8,7 +8,7 @@
 
 # MAGIC %sql
 # MAGIC -- 5-minute KPI (by platform/version/region/provider)
-# MAGIC CREATE OR REPLACE TABLE main.liveops_demo.gold_kpi_5m AS
+# MAGIC CREATE OR REPLACE TABLE cursor_gaming.gaming.gold_kpi_5m AS
 # MAGIC WITH pay_5m AS (
 # MAGIC   SELECT
 # MAGIC     date_trunc('minute', (floor(unix_timestamp(event_ts) / 300) * 300).cast('timestamp')) AS bucket_5m,
@@ -20,7 +20,7 @@
 # MAGIC     sum(case when payment_status = 'success' then 1 else 0 end) AS pay_success,
 # MAGIC     sum(amount) AS revenue,
 # MAGIC     count(distinct user_id) AS dau_5m
-# MAGIC   FROM main.liveops_demo.silver_payments
+# MAGIC   FROM cursor_gaming.gaming.silver_payments
 # MAGIC   GROUP BY 1, 2, 3, 4, 5
 # MAGIC )
 # MAGIC SELECT
@@ -48,7 +48,7 @@
 # MAGIC   sum(pay_success) AS pay_success,
 # MAGIC   sum(pay_success) * 1.0 / nullif(sum(pay_attempts), 0) AS pay_success_rate,
 # MAGIC   sum(dau_5m) AS dau_5m
-# MAGIC FROM main.liveops_demo.gold_kpi_5m
+# MAGIC FROM cursor_gaming.gaming.gold_kpi_5m
 # MAGIC GROUP BY bucket_5m;
 
 # COMMAND ----------
@@ -82,7 +82,7 @@
 
 # MAGIC %sql
 # MAGIC -- gold_anomaly: each bucket vs baseline, z_score < -3 => anomaly
-# MAGIC CREATE OR REPLACE TABLE main.liveops_demo.gold_anomaly AS
+# MAGIC CREATE OR REPLACE TABLE cursor_gaming.gaming.gold_anomaly AS
 # MAGIC WITH kpi AS (
 # MAGIC   SELECT bucket_5m, revenue, pay_success_rate, pay_attempts, dau_5m
 # MAGIC   FROM v_kpi_5m_overall
